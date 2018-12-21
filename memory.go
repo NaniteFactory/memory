@@ -3,6 +3,7 @@ package memory
 import (
 	"errors"
 	"fmt"
+	"os"
 	"syscall"
 	"unsafe"
 )
@@ -93,7 +94,7 @@ func Unprotect(whereFrom, nSize uintptr) (protectBack func() error, err error) {
 func WriteProcessMemory(whereFrom uintptr, writeWhat []byte) error {
 	whatInHeap := C.CBytes(writeWhat)
 	defer C.free(whatInHeap)
-	fmt.Print() // We REQUIRE this for now because of that buggy C.CBytes(). If we don't do this, the syscall below will raise a fault.
+	syscall.Write(syscall.Handle(os.Stdout.Fd()), nil) // The reason we do this is because otherwise the syscall below will raise a fault.
 	ret, _, err := syscall.Syscall6(
 		fnWriteProcessMemory,
 		4, hProcess, whereFrom, uintptr(whatInHeap), uintptr(len(writeWhat)), 0, 0,
